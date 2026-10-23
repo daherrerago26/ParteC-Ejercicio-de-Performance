@@ -1,0 +1,11 @@
+# Logs de JMeter
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
