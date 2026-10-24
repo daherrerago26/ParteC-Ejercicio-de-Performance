@@ -1,0 +1,88 @@
+EJERCICIO 1 - HALLAZGOS Y CONCLUSIONES
+======================================
+
+RESULTADO
+---------
+El servicio de login cumple los tres criterios del enunciado, con margen:
+
+    Criterio                               Resultado obtenido     Condición    Estado
+    Al menos 20 TPS                        21,99 TPS              >= 20        CUMPLE
+    Tasa de error menor al 3 %             0,00 % (0 de 7.262)    < 3 %        CUMPLE
+    Tiempo de respuesta máximo de 1,5 s    869 ms                 <= 1.500 ms  CUMPLE
+
+Corrida oficial: 24 de octubre de 2026, de 08:04 a 08:10 (hora de Colombia, UTC-5), desde un
+equipo con Windows 11 y conexión a internet residencial.
+
+  - Perfil: 22 TPS objetivo, 50 usuarios virtuales, 30 s de arranque gradual y 300 s sostenidos.
+  - Peticiones: 7.262, todas con código 201 y token en la respuesta.
+  - Tiempos de respuesta (ms): mínimo 318, promedio 366, mediana 355, p90 399, p95 458,
+    p99 534, máximo 869.
+  - En la fase sostenida (después de los 30 s de arranque) la tasa fue de 21,95 TPS.
+  - APDEX 1,000 con umbral de 1.500 ms: todas las respuestas fueron satisfactorias.
+
+La evaluación automática (scripts/evaluate-criteria.groovy) terminó con código 0 y su
+resultado está en reportes/criterios.txt.
+
+
+HALLAZGOS
+---------
+1. Tiempos estables durante toda la prueba.
+   Después del primer segundo, el promedio de cada segundo se mantuvo entre 348 y 417 ms hasta
+   el final (ver evidencias/03-tiempos-de-respuesta.png); no hay degradación a medida que pasa
+   el tiempo.
+   Solo 207 peticiones (2,85 %) superaron los 500 ms y ninguna superó 1 segundo. El máximo
+   (869 ms) queda en el 58 % del límite permitido.
+
+2. La tasa por segundo varía, pero el promedio se sostiene.
+   Las llegadas son aleatorias a propósito (Precise Throughput Timer), así que en la fase
+   sostenida cada segundo hubo entre 9 y 37 peticiones, con un promedio de 22 (ver
+   evidencias/02-peticiones-por-segundo.png).
+   Al inicio hubo un pico de 42 peticiones en un segundo: mientras arrancan los usuarios
+   virtuales, el timer recupera las peticiones atrasadas. Ese pico no generó errores ni subió
+   los tiempos.
+
+3. El servicio responde 201 Created en un login correcto.
+   Un login no crea un recurso, así que lo esperable sería 200 OK. No es un error funcional,
+   pero cualquier cliente que valide solo 200 lo trataría como fallo. La prueba valida 201 y
+   que la respuesta traiga el token.
+
+4. Las credenciales incorrectas devuelven 401 con texto plano.
+   El mensaje "username or password is incorrect" llega como texto y no como JSON, a diferencia
+   de la respuesta exitosa. Un cliente que siempre espere JSON tendría que manejar los dos
+   formatos.
+
+5. El servicio está detrás de Cloudflare.
+   Durante la exploración, una petición HEAD recibió 403 con un desafío de Cloudflare. A 22 TPS
+   el tráfico de JMeter no fue bloqueado, pero con una carga mayor el bloqueo o la limitación de
+   tasa del CDN podrían aparecer como errores sin que el servicio de login falle.
+
+6. La concurrencia real fue baja.
+   Con 22 TPS y 366 ms de promedio, la Ley de Little da unas 8 peticiones simultáneas. Los 50
+   usuarios virtuales dieron margen de sobra para sostener la tasa aunque la latencia subiera.
+
+7. La primera petición de cada conexión es más lenta.
+   Abrir la conexión segura (TLS) costó unos 420 ms en la prueba smoke. Como JMeter reutiliza
+   las conexiones (keep-alive), solo la primera petición de cada usuario virtual paga ese costo.
+
+
+CONSIDERACIONES
+---------------
+- Los tiempos incluyen la red entre el equipo de prueba y el servidor. En un proyecto real la
+  carga se generaría desde un equipo cercano al servidor y se acompañaría del monitoreo del
+  servidor (CPU, memoria, conexiones), que en este ejercicio no está disponible.
+- Es una API pública de terceros: la prueba se limitó a la carga y la duración necesarias para
+  el enunciado.
+- El criterio de 1,5 s se evalúa sobre el tiempo máximo, como dice el enunciado. Los percentiles
+  (p90, p95, p99) se reportan como apoyo.
+
+
+CONCLUSIONES
+------------
+- El servicio de login soporta 22 TPS sostenidos durante 5 minutos sin errores y con tiempos
+  muy por debajo del límite: cumple los tres criterios del enunciado con margen.
+- La prueba es reproducible: los datos salen del CSV, la carga se ajusta con parámetros -J sin
+  editar el plan, y los criterios se evalúan de forma automática con un código de salida que
+  sirve para un pipeline de integración continua.
+- Para conocer el límite real del servicio, el siguiente paso sería una prueba de estrés que
+  suba la tasa por escalones (por ejemplo 22, 50 y 100 TPS) hasta que aparezcan errores o los
+  tiempos superen el límite. Está fuera del alcance de este ejercicio.
