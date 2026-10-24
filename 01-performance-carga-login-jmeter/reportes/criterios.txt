@@ -1,0 +1,14 @@
+CRITERIOS DEL ENUNCIADO - PRUEBA DE CARGA DEL LOGIN
+===================================================
+Fuente: reportes/dashboard/statistics.json (fila Total)
+
+Criterio                               Valor        Condición    Resultado
+Al menos 20 TPS                        21,99 TPS    >= 20 TPS    CUMPLE
+Tasa de error menor al 3 %             0,00 %       < 3 %        CUMPLE
+Tiempo de respuesta máximo de 1,5 s    869 ms       <= 1500 ms   CUMPLE
+
+Datos de apoyo
+  Peticiones: 7262, errores: 0
+  Tiempo de respuesta (ms): mínimo 318, promedio 366, mediana 355, p90 399, p95 458, p99 534, máximo 869
+
+RESULTADO GENERAL: CUMPLE todos los criterios
