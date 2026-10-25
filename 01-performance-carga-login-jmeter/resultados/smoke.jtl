@@ -1,0 +1,6 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1792847604813,722,POST /auth/login,201,Created,Login users 1-1,text,true,,890,223,1,1,https://fakestoreapi.com/auth/login,722,0,342
+1792847605556,367,POST /auth/login,201,Created,Login users 1-1,text,true,,900,229,1,1,https://fakestoreapi.com/auth/login,367,0,0
+1792847605924,403,POST /auth/login,201,Created,Login users 1-1,text,true,,894,223,1,1,https://fakestoreapi.com/auth/login,403,0,0
+1792847606328,352,POST /auth/login,201,Created,Login users 1-1,text,true,,889,224,1,1,https://fakestoreapi.com/auth/login,351,0,0
+1792847606680,348,POST /auth/login,201,Created,Login users 1-1,text,true,,897,225,1,1,https://fakestoreapi.com/auth/login,348,0,0
